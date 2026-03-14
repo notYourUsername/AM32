@@ -64,7 +64,7 @@ jobs:
             --suppress=unusedFunction \
             --inline-suppr \
             -I Inc/ \
-            --exclude=Src/DroneCAN/dsdl_generated \
+            -i Src/DroneCAN/dsdl_generated \
             Src/DroneCAN/
 
   # ─────────────────────────────────────────────────────────────────────────────

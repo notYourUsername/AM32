@@ -1891,6 +1891,7 @@ if(zero_crosses < 5){
             if (armed) {
                 allOff();
                 armed = 0;
+                running = 0;
                 input = 0;
                 inputSet = 0;
                 zero_input_count = 0;
@@ -1899,11 +1900,12 @@ if(zero_crosses < 5){
                 for (int i = 0; i < 64; i++) {
                     dma_buffer[i] = 0;
                 }
-                NVIC_SystemReset();
+                signaltimeout = 0;
             }
             if (signaltimeout > LOOP_FREQUENCY_HZ << 1) { // 2 second when not armed
                 allOff();
                 armed = 0;
+                running = 0;
                 input = 0;
                 inputSet = 0;
                 zero_input_count = 0;
@@ -1912,7 +1914,7 @@ if(zero_crosses < 5){
                 for (int i = 0; i < 64; i++) {
                     dma_buffer[i] = 0;
                 }
-                NVIC_SystemReset();
+                signaltimeout = 0;
             }
         }
 #ifdef USE_CUSTOM_LED
@@ -1969,7 +1971,10 @@ if(zero_crosses < 5){
                 zero_crosses = 0;
                 desync_happened++;
                 if ((!eepromBuffer.bi_direction && (input > 47)) || commutation_interval > 1000) {
-                    running = 0;
+                    if (desync_happened >= 4) {
+                        running = 0;
+                        desync_happened = 0;
+                    }
                 }
                 old_routine = 1;
                 if (zero_crosses > 100) {

@@ -17,3 +17,6 @@ Keil_Projects/Listings
 *.o
 .DS_Store
 .vscode/settings.json
+tests/test_crc
+tests/test_dshot_decode
+tests/*.dSYM/

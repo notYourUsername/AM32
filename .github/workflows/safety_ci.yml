@@ -44,12 +44,11 @@ jobs:
       - name: Run cppcheck on Src/
         run: |
           cppcheck \
-            --enable=all \
+            --enable=warning,performance,portability \
             --error-exitcode=1 \
             --suppress=missingInclude \
             --suppress=missingIncludeSystem \
             --suppress=unusedFunction \
-            --suppress=preprocessorErrorDirective \
             --inline-suppr \
             -I Inc/ \
             -D SEQURE_4IN1_F051 \

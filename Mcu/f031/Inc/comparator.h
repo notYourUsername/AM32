@@ -20,4 +20,4 @@ void changeCompInput();
 void enableCompInterrupts();
 
 extern char rising;
-extern char step;
+extern volatile char step;

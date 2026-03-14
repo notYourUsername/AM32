@@ -84,7 +84,7 @@ extern char send_telemetry;
 uint16_t interrupt_time = 0;
 extern char servoPwm;
 extern char dshot_telemetry;
-extern char armed;
+extern volatile char armed;
 extern char out_put;
 extern uint8_t compute_dshot_flag;
 

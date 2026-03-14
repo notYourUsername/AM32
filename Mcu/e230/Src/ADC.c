@@ -9,9 +9,9 @@
 #include "functions.h"
 
 #ifdef USE_ADC_INPUT
-uint16_t ADCDataDMA[4];
+volatile uint16_t ADCDataDMA[4];
 #else
-uint16_t ADCDataDMA[3];
+volatile uint16_t ADCDataDMA[3];
 #endif
 
 extern uint16_t ADC_raw_temp;

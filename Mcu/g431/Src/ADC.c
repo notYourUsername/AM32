@@ -8,14 +8,14 @@
 
 
  #ifdef USE_ADC_1_2
- uint16_t ADC1DataDMA[2];
- uint16_t ADC2DataDMA[2];
+ volatile uint16_t ADC1DataDMA[2];
+ volatile uint16_t ADC2DataDMA[2];
  #else
 
  #ifdef USE_ADC_INPUT
- uint16_t ADCDataDMA[4];
+ volatile uint16_t ADCDataDMA[4];
  #else
- uint16_t ADCDataDMA[3];
+ volatile uint16_t ADCDataDMA[3];
  #endif
  #endif
  

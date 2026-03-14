@@ -1,0 +1,113 @@
+name: Safety & Static Analysis
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 1: Volatile qualifier audit
+  # Ensures all ISR-shared variables are declared volatile in both their
+  # definitions and every extern declaration across the codebase.
+  # ─────────────────────────────────────────────────────────────────────────────
+  volatile-audit:
+    name: Volatile Qualifier Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run volatile checker
+        run: python3 tests/check_volatile.py
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 2: cppcheck static analysis
+  # Runs on the portable Src/ layer (no MCU headers required).
+  # Treats all warnings as errors; suppresses known false-positives only.
+  # ─────────────────────────────────────────────────────────────────────────────
+  cppcheck:
+    name: cppcheck Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install cppcheck
+        run: sudo apt-get install -y cppcheck
+
+      - name: Run cppcheck on Src/
+        run: |
+          cppcheck \
+            --enable=all \
+            --error-exitcode=1 \
+            --suppress=missingInclude \
+            --suppress=missingIncludeSystem \
+            --suppress=unusedFunction \
+            --inline-suppr \
+            -I Inc/ \
+            -D STM32F051 \
+            Src/main.c Src/dshot.c
+
+      - name: Run cppcheck on DroneCAN/
+        run: |
+          cppcheck \
+            --enable=all \
+            --error-exitcode=1 \
+            --suppress=missingInclude \
+            --suppress=missingIncludeSystem \
+            --suppress=unusedFunction \
+            --inline-suppr \
+            -I Inc/ \
+            Src/DroneCAN/
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 3: Unit tests (host-compiled, no hardware required)
+  # Builds and runs portable unit tests using the Unity framework.
+  # Tests cover: CRC-16 correctness, DShot frame decode, cmd 36 guard.
+  # ─────────────────────────────────────────────────────────────────────────────
+  unit-tests:
+    name: Unit Tests (host)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build tools
+        run: sudo apt-get install -y gcc make
+
+      - name: Build and run unit tests
+        run: |
+          cd tests
+          make all
+          make run
+
+  # ─────────────────────────────────────────────────────────────────────────────
+  # Job 4: Full firmware build (all 10 MCU targets, Linux)
+  # Runs after all safety checks pass — confirms no regressions introduced.
+  # ─────────────────────────────────────────────────────────────────────────────
+  build-verify:
+    name: Firmware Build Verify
+    runs-on: ubuntu-latest
+    needs: [volatile-audit, cppcheck, unit-tests]
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+
+      - name: Install ARM toolchain
+        run: make arm_sdk_install
+
+      - name: Build all targets
+        run: make -j$(nproc)
+
+      - name: Archive firmware artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: AM32-safety-verified-firmware
+          path: obj/*.hex
+          retention-days: 30

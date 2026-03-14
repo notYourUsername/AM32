@@ -40,7 +40,7 @@ extern char send_telemetry;
 extern char telemetry_done;
 extern char servoPwm;
 extern char dshot_telemetry;
-extern char armed;
+extern volatile char armed;
 extern char out_put;
 /* USER CODE END EV */
 

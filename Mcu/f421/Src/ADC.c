@@ -8,9 +8,9 @@
 
 
 #if defined(USE_ADC_INPUT) || defined(USE_NTC)
-uint16_t ADCDataDMA[5];
+volatile uint16_t ADCDataDMA[5];
 #else
-uint16_t ADCDataDMA[4];
+volatile uint16_t ADCDataDMA[4];
 #endif
 
 

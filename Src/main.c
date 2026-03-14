@@ -519,6 +519,7 @@ int16_t phase_B_position;
 int16_t phase_C_position;
 uint16_t step_delay = 100;
 char stepper_sine = 0;
+uint16_t sine_step_ticks = 0; // ticks since last sine position advance (1 tick = 1 ISR period ~50us)
 char forward = 1;
 uint16_t gate_drive_offset = DEAD_TIME;
 
@@ -1272,6 +1273,7 @@ if (!stepper_sine && armed) {
 
                 if (eepromBuffer.use_sine_start == 1) {
                     stepper_sine = 1;
+                    sine_step_ticks = 0;
                 }
                 duty_cycle_setpoint = 0;
             }
@@ -1311,6 +1313,9 @@ void tenKhzRoutine()
     ledcounter++;
     ramp_count++;
     one_khz_loop_counter++;
+    if (stepper_sine) {
+        sine_step_ticks++;
+    }
     if (!armed) {
         if (cell_count == 0) {
             if (inputSet) {
@@ -2194,20 +2199,31 @@ if(zero_crosses < 5){
                         allpwm();
                         do_once_sinemode = 0;
                     }
-                    advanceincrement();
                     step_delay = map(input, 48, 120, 7000 / eepromBuffer.motor_poles, 810 / eepromBuffer.motor_poles);
-                    delayMicros(step_delay);
-                    e_rpm = 600 / step_delay; // in hundreds so 33 e_rpm is 3300 actual erpm
+                    {
+                        uint16_t ticks_needed = (uint16_t)((step_delay + 25) / 50);
+                        if (ticks_needed == 0) ticks_needed = 1;
+                        if (sine_step_ticks >= ticks_needed) {
+                            advanceincrement();
+                            sine_step_ticks = 0;
+                            e_rpm = 600 / step_delay; // in hundreds so 33 e_rpm is 3300 actual erpm
+                        }
+                    }
 
                 } else {
                     do_once_sinemode = 1;
-                    advanceincrement();
                     if (input > 200) {
                         phase_A_position = 0;
                         step_delay = 80;
                     }
-
-                    delayMicros(step_delay);
+                    {
+                        uint16_t ticks_needed = (uint16_t)((step_delay + 25) / 50);
+                        if (ticks_needed == 0) ticks_needed = 1;
+                        if (sine_step_ticks >= ticks_needed) {
+                            advanceincrement();
+                            sine_step_ticks = 0;
+                        }
+                    }
                     if (phase_A_position == 0) {
                         stepper_sine = 0;
                         running = 1;

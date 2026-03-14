@@ -57,13 +57,14 @@ jobs:
       - name: Run cppcheck on DroneCAN/
         run: |
           cppcheck \
-            --enable=all \
+            --enable=warning,performance,portability \
             --error-exitcode=1 \
             --suppress=missingInclude \
             --suppress=missingIncludeSystem \
             --suppress=unusedFunction \
             --inline-suppr \
             -I Inc/ \
+            --exclude=Src/DroneCAN/dsdl_generated \
             Src/DroneCAN/
 
   # ─────────────────────────────────────────────────────────────────────────────

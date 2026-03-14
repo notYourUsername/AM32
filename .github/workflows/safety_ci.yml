@@ -105,7 +105,7 @@ jobs:
         run: make arm_sdk_install
 
       - name: Build all targets
-        run: make -j$(nproc)
+        run: make
 
       - name: Archive firmware artifacts
         uses: actions/upload-artifact@v4

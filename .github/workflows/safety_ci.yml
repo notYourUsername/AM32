@@ -65,6 +65,7 @@ jobs:
             --inline-suppr \
             -I Inc/ \
             -i Src/DroneCAN/dsdl_generated \
+            -i Src/DroneCAN/libcanard \
             Src/DroneCAN/
 
   # ─────────────────────────────────────────────────────────────────────────────
